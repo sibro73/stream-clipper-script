@@ -67,7 +67,10 @@ python clipper.py run --all     # alle noch offenen VODs nacheinander clippen
 ```
 
 **Automatisch:** Die Windows-Aufgabe „Clipper SkiiMaskTimmy taeglich“ startet jeden Tag um 8:00 `run_daily.bat`
-(= `run --all`, PC muss eingeschaltet oder im Standby sein). Protokoll: `logs\daily.log`.
+(= `run --all`). Protokoll: `logs\daily.log`.
+**Nachts den Laptop in den Standby („Energie sparen“) statt herunterfahren und ans Netzteil hängen** – dann weckt
+Windows ihn um 8:00 bzw. 9:00 selbst auf, und die Skripte halten ihn wach, bis sie fertig sind.
+Heruntergefahren oder auf Akku wird er nicht geweckt.
 Ändern/abschalten: Aufgabenplanung öffnen → Aufgabe suchen → Eigenschaften bzw. Deaktivieren.
 
 **Aufs Handy (Telegram, `notify.py`):** Um 9:00 kommen die Top-5-Clips mit fertiger Caption (von Claude Code

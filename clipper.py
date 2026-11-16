@@ -686,7 +686,16 @@ def cmd_run_all(cfg, args):
             print(f"FEHLER bei VOD {vod}: {e}")
 
 
+def keep_awake():
+    """Windows nicht schlafen lassen, solange das Skript laeuft (sonst schlaeft der PC nach dem
+    Aufwecken durch die Aufgabenplanung nach ~2 Min wieder ein)."""
+    if sys.platform == "win32":
+        import ctypes
+        ctypes.windll.kernel32.SetThreadExecutionState(0x80000000 | 0x00000001)  # CONTINUOUS | SYSTEM_REQUIRED
+
+
 def main():
+    keep_awake()
     ap = argparse.ArgumentParser(description="Twitch-VOD -> TikTok-Clips")
     ap.add_argument("--config", default=str(ROOT / "config.toml"))
     sub = ap.add_subparsers(dest="cmd", required=True)

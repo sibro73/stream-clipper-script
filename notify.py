@@ -319,6 +319,9 @@ def cmd_posted(args):
 
 
 def main():
+    if sys.platform == "win32":  # PC nicht mitten im Senden wieder einschlafen lassen
+        import ctypes
+        ctypes.windll.kernel32.SetThreadExecutionState(0x80000000 | 0x00000001)
     ap = argparse.ArgumentParser(description="Telegram-Benachrichtigungen fuer den Clipper")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("setup")
