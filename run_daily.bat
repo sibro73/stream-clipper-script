@@ -6,3 +6,6 @@ where ffmpeg >nul 2>&1 || set "PATH=%LOCALAPPDATA%\Microsoft\WinGet\Packages\Gya
 set PYTHONUTF8=1
 set PYTHONUNBUFFERED=1
 "C:\Users\sib\AppData\Local\Programs\Python\Python313\python.exe" clipper.py run --all >> logs\daily.log 2>&1
+rem Gleich danach die Top-Clips aufs Handy (die 9:00-Aufgabe ist nur noch Reserve, falls das hier nicht lief)
+echo ===== %date% %time% morning (nach Clip-Lauf) >> logs\notify.log
+"C:\Users\sib\AppData\Local\Programs\Python\Python313\python.exe" notify.py morning >> logs\notify.log 2>&1

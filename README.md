@@ -73,12 +73,12 @@ Windows ihn um 6:00 bzw. 9:00 selbst auf, und die Skripte halten ihn wach, bis s
 Heruntergefahren oder auf Akku wird er nicht geweckt.
 Ändern/abschalten: Aufgabenplanung öffnen → Aufgabe suchen → Eigenschaften bzw. Deaktivieren.
 
-**Aufs Handy (Telegram, `notify.py`):** Um 9:00 kommen die Top-5-Clips mit fertiger Caption (von Claude Code
+**Aufs Handy (Telegram, `notify.py`):** Direkt nach dem Clip-Lauf (ca. 6:30) kommen die Top-5-Clips mit fertiger Caption (von Claude Code
 über dein Claude-Abo, oder per API-Key falls in `secrets.toml` eingetragen)
 und Post-Zeit (#1–#3 um 16/18/21 Uhr, Rest Reserve). Kurz nach jeder Post-Zeit kommt die Erinnerung,
 innerhalb von 30 Min bei Whop einzureichen. Zugangsdaten in `secrets.toml` (nicht weitergeben).
 Bereits gepostete Clips stehen in `posted.json` (von Hand: `python notify.py posted <pfad>`).
-Aufgabe: „Clipper Telegram Morgen“ (PC muss um 9:00 an oder im Standby sein).
+Die Aufgabe „Clipper Telegram Morgen“ um 9:00 ist nur Reserve: Sie schickt nichts, wenn die Clips heute schon kamen.
 
 Die Whop-Erinnerungen (16:02 / 18:02 / 21:02) kommen von **cron-job.org**, damit sie auch bei
 ausgeschaltetem PC ankommen. Die fertigen Aufrufe stehen in `cronjob_urls.txt` (lokal, enthält den Bot-Token,
