@@ -77,6 +77,7 @@ Heruntergefahren oder auf Akku wird er nicht geweckt.
 über dein Claude-Abo, oder per API-Key falls in `secrets.toml` eingetragen)
 und Post-Zeit (#1–#3 um 16/18/21 Uhr, Rest Reserve). Kurz nach jeder Post-Zeit kommt die Erinnerung,
 innerhalb von 30 Min bei Whop einzureichen. Zugangsdaten in `secrets.toml` (nicht weitergeben).
+Geschickte Clips werden danach auf dem PC gelöscht, nicht geschickte nach 3 Tagen (`notify.keep_days`).
 Bereits gepostete Clips stehen in `posted.json` (von Hand: `python notify.py posted <pfad>`).
 Die Aufgabe „Clipper Telegram Morgen“ um 9:00 ist nur Reserve: Sie schickt nichts, wenn die Clips heute schon kamen.
 

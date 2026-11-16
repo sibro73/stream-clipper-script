@@ -228,6 +228,28 @@ def phone_copy(src: Path, name: str) -> Path:
     return out
 
 
+# ----------------------------------------------------------------------------- cleanup
+
+def cleanup(cfg: dict):
+    """Geschickte Clips loeschen (sind auf Telegram) und nicht geschickte nach notify.keep_days Tagen."""
+    keep_days = int(cfg.get("notify", {}).get("keep_days", 3))
+    cutoff = f"{dt.date.today() - dt.timedelta(days=keep_days):%Y-%m-%d}"
+    used = set(load_json(POSTED, []))
+    removed = 0
+    for d in sorted((ROOT / "output").glob("*_*")):
+        if not d.is_dir():
+            continue
+        old = d.name.split("_", 1)[0] < cutoff
+        for f in d.glob("*.mp4"):
+            if old or f"{d.name}/{f.name}" in used:
+                f.unlink(missing_ok=True)
+                removed += 1
+        if not any(d.glob("*.mp4")):  # nichts mehr drin -> ganzen Lauf-Ordner weg
+            shutil.rmtree(d, ignore_errors=True)
+    if removed:
+        print(f"Aufgeraeumt: {removed} Clips geloescht (geschickt oder aelter als {keep_days} Tage).")
+
+
 # ----------------------------------------------------------------------------- commands
 
 def cmd_setup(args):
@@ -262,6 +284,7 @@ def cmd_morning(args):
     pool = clip_pool()[:count]
     if not pool:
         send_text("📭 Heute keine neuen Clips (kein neuer Stream und kein Vorrat mehr).")
+        cleanup(cfg)
         return
     titles = vod_titles({c["vod"] for c in pool})
     new = sum(c["run_date"] == today() for c in pool)
@@ -289,6 +312,7 @@ def cmd_morning(args):
     save_json(plan_file, plan)
     for f in PHONE.glob("*.mp4"):  # Handy-Kopien sind gesendet -> Platz sparen
         f.unlink(missing_ok=True)
+    cleanup(cfg)
     print("Fertig.")
 
 

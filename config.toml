@@ -58,6 +58,7 @@ prefer_nvenc = true    # RTX-Grafikkarte zum Encoden nutzen
 [notify]                # Telegram (notify.py) - Zugangsdaten in secrets.toml
 clips = 5              # so viele Top-Clips kommen jeden Morgen aufs Handy
 slots = ["16:00", "18:00", "21:00"]   # Post-Zeiten fuer #1-#3 (Rest = Reserve); Erinnerung kurz danach
+keep_days = 3          # nicht geschickte Clips so viele Tage als Vorrat behalten, dann loeschen (geschickte sofort)
 
 [tools]
 twitch_downloader = "tools/TwitchDownloaderCLI.exe"   # fuer Chat-Spikes (optional, empfohlen)
