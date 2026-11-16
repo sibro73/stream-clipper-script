@@ -1,0 +1,1 @@
+TwitchDownloaderCLI.exe hier ablegen (siehe README).

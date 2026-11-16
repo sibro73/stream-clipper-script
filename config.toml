@@ -1,0 +1,63 @@
+# Einstellungen fuer clipper.py  (SkiiMaskTimmy-Kampagne)
+
+[channel]
+name = "skiimasktimmy"                       # Twitch-Kanal
+handle_text = "twitch.tv/skiimasktimmy"      # Pflicht: im Bild und in der Caption
+hashtags = ["#skiimasktimmy", "#twitchclips", "#fps", "#gaming"]
+game_hashtag = ""                            # z.B. "#arcraiders" - je nach gespieltem Game
+
+[detect]
+clips_per_vod = 5      # wie viele Clips pro VOD (die besten Momente)
+min_gap = 90           # Mindestabstand zwischen zwei Clips (Sekunden)
+skip_start = 300       # Stream-Intro ueberspringen (Sekunden)
+pre = 22               # Sekunden VOR dem Hoehepunkt (Aufbau)
+post = 8               # Sekunden NACH dem Hoehepunkt (Reaktion)
+chat_delay = 6         # Chat reagiert ca. 6 s spaeter als das Ereignis
+weight_audio = 1.0
+weight_chat = 1.3
+min_score = 1.2        # tiefer = mehr (aber schwaechere) Clips
+
+[hook]
+enabled = true         # Hoehepunkt 2-3 s ganz am Anfang zeigen, dann den Aufbau ("open on the payoff")
+before = 0.8
+after = 1.8
+
+[layout]
+top_h = 604            # Hoehe der Facecam oben (Rest = Gameplay), Total 1920 - 604 = 1080*246/440 -> Facecam komplett, nichts abgeschnitten
+# Position der Facecam im 1920x1080-Stream -> mit "python clipper.py frame" ablesen!
+facecam = { x = 10, y = 760, w = 440, h = 246 }   # unten links inkl. Rahmen (VOD 2929743934, Gameplay-Szene)
+game_offset_x = 0      # Gameplay-Ausschnitt nach links (-) / rechts (+) schieben
+# Je nach Szene sitzt die Facecam woanders (z.B. Rocket League: unten rechts) -> weitere Positionen
+facecam_alt = [ { x = 1467, y = 760, w = 440, h = 246 } ]
+# Szenen-Pruefung: Ein Clip wird nur gemacht, wenn der Facecam-Rahmen (Vorlage) in ALLEN Stichproben
+# an einer der Positionen erkannt wird. Sonst wird er uebersprungen (Starting Soon, Just Chatting, Pause ...).
+frame_template = "assets/facecam_frame.png"
+frame_min_match = 0.55         # Muster-Vergleich - gemessen: Rahmen da 0.73-1.00, kein Rahmen <= 0.32
+frame_min_lines = 0.25         # Rahmenlinien-Vergleich - gemessen: Rahmen da 0.30-1.00, kein Rahmen <= 0.14
+
+[overlay]
+png = "assets/SkiiMaskTimmy Twitch Overlay.png"   # Twitch-Overlay aus der Kampagne (1756x288, transparent)
+width = 760                          # Breite des Overlays in px
+# y = 650                            # optional feste Position, sonst mittig auf der Trennlinie
+show_handle_text = true              # "twitch.tv/skiimasktimmy" als Text einblenden
+handle_offset = 70                   # Abstand des Texts unter der Trennlinie
+
+[subtitles]
+enabled = true
+model = "small"        # small = schnell, "medium" = genauer (langsamer)
+language = "en"
+font = "Arial Black"
+size = 80
+margin_v = 520         # Abstand der Untertitel vom unteren Rand (TikTok-Buttons frei lassen)
+max_words = 3
+censor = true          # Schimpfwoerter in den Untertiteln maskieren (F*CK) - Ton bleibt original
+
+[encode]
+prefer_nvenc = true    # RTX-Grafikkarte zum Encoden nutzen
+
+[notify]                # Telegram (notify.py) - Zugangsdaten in secrets.toml
+clips = 5              # so viele Top-Clips kommen jeden Morgen aufs Handy
+slots = ["16:00", "18:00", "21:00"]   # Post-Zeiten fuer #1-#3 (Rest = Reserve); Erinnerung kurz danach
+
+[tools]
+twitch_downloader = "tools/TwitchDownloaderCLI.exe"   # fuer Chat-Spikes (optional, empfohlen)

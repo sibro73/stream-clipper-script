@@ -1,0 +1,18 @@
+# Zugangsdaten - NIE hochladen
+secrets.toml
+cronjob_urls.txt
+
+# Erzeugte Dateien / lokaler Zustand
+output/
+work/
+logs/
+plans/
+__pycache__/
+posted.json
+state.json
+vod_titles.json
+frame_grid.png
+layout_preview.png
+
+# Externes Tool (selbst herunterladen, siehe README)
+tools/*.exe
