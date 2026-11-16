@@ -66,10 +66,10 @@ Oder einfach `run.bat` doppelklicken.
 python clipper.py run --all     # alle noch offenen VODs nacheinander clippen
 ```
 
-**Automatisch:** Die Windows-Aufgabe „Clipper SkiiMaskTimmy taeglich“ startet jeden Tag um 8:00 `run_daily.bat`
+**Automatisch:** Die Windows-Aufgabe „Clipper SkiiMaskTimmy taeglich“ startet jeden Tag um 6:00 `run_daily.bat`
 (= `run --all`). Protokoll: `logs\daily.log`.
 **Nachts den Laptop in den Standby („Energie sparen“) statt herunterfahren und ans Netzteil hängen** – dann weckt
-Windows ihn um 8:00 bzw. 9:00 selbst auf, und die Skripte halten ihn wach, bis sie fertig sind.
+Windows ihn um 6:00 bzw. 9:00 selbst auf, und die Skripte halten ihn wach, bis sie fertig sind.
 Heruntergefahren oder auf Akku wird er nicht geweckt.
 Ändern/abschalten: Aufgabenplanung öffnen → Aufgabe suchen → Eigenschaften bzw. Deaktivieren.
 
