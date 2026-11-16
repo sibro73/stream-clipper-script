@@ -75,8 +75,12 @@ python clipper.py run --all     # alle noch offenen VODs nacheinander clippen
 und Post-Zeit (#1–#3 um 16/18/21 Uhr, Rest Reserve). Kurz nach jeder Post-Zeit kommt die Erinnerung,
 innerhalb von 30 Min bei Whop einzureichen. Zugangsdaten in `secrets.toml` (nicht weitergeben).
 Bereits gepostete Clips stehen in `posted.json` (von Hand: `python notify.py posted <pfad>`).
-Aufgaben: „Clipper Telegram Morgen“ und „Clipper Telegram Whop-Erinnerung“. Wenn du in `config.toml`
-`notify.slots` änderst, die Zeiten der Erinnerungs-Aufgabe in der Aufgabenplanung mit anpassen.
+Aufgabe: „Clipper Telegram Morgen“ (PC muss um 9:00 an oder im Standby sein).
+
+Die Whop-Erinnerungen (16:02 / 18:02 / 21:02) kommen von **cron-job.org**, damit sie auch bei
+ausgeschaltetem PC ankommen. Die fertigen Aufrufe stehen in `cronjob_urls.txt` (lokal, enthält den Bot-Token,
+nicht auf GitHub). Die lokale Aufgabe „Clipper Telegram Whop-Erinnerung“ ist deshalb deaktiviert.
+Wenn du in `config.toml` `notify.slots` änderst, die Zeiten bei cron-job.org mit anpassen.
 
 Clips ohne durchgehend sichtbare Facecam (Starting Soon, Just Chatting mit Vollbild-Kamera …) werden
 automatisch übersprungen und durch den nächstbesten Moment ersetzt.
