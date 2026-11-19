@@ -1,4 +1,4 @@
-# Einstellungen der Echtzeit-Pipeline (fehlende Werte = Standard aus live/config.py)
+﻿# Einstellungen der Echtzeit-Pipeline (fehlende Werte = Standard aus live/config.py)
 
 game:
   name: "Grand Theft Auto VI"   # game_id wird beim Start per Helix "Get Games" aufgeloest; Fallback: Name enthaelt das
@@ -11,7 +11,7 @@ buffer:
   minutes: 8                    # Ringpuffer pro Streamer
   segment_s: 4                  # kurze Segmente = Nachlauf ist schneller im Puffer
   quality: "720p30,720p60,720p,best"   # 720p30 spart Bandbreite (nicht jeder Kanal hat es)
-  max_streams: 4                # gleichzeitige Aufnahmen (je ~3-5 Mbit/s Download, LAN). Kampagnen-Streamer haben Vorrang
+  max_streams: 6                # gleichzeitige Aufnahmen (je ~3-5 Mbit/s Download, LAN). Kampagnen-Streamer haben Vorrang
 
 activity:                       # Schlaf-/AFK-Streams erkennen und ueberspringen (Messung am Ton)
   enabled: true

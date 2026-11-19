@@ -26,10 +26,25 @@ streamers:
     campaign_tags: []
     hashtags: ["#kaicenat"]
 
+  - twitch_login: caseoh_           # keine Kampagne, nur Reichweite
+    caption_name: CaseOh
+    campaign_tags: []
+    hashtags: ["#caseoh"]
+
   - twitch_login: jynxzi            # keine Kampagne, nur Reichweite
     caption_name: Jynxzi
     campaign_tags: []
     hashtags: ["#jynxzi"]
+
+  - twitch_login: fanum             # keine Kampagne, nur Reichweite
+    caption_name: Fanum
+    campaign_tags: []
+    hashtags: ["#fanum"]
+
+  - twitch_login: brucedropemoff    # keine Kampagne, nur Reichweite
+    caption_name: Bruce
+    campaign_tags: []
+    hashtags: ["#brucedropemoff"]
 
   # Entfernt am 2026-11-19 (bei Bedarf wieder einkommentieren):
   # - twitch_login: yourragegaming
@@ -40,15 +55,3 @@ streamers:
   #   caption_name: Clix
   #   campaign_tags: ["#Clix"]
   #   hashtags: []
-  # - twitch_login: caseoh_
-  #   caption_name: CaseOh
-  #   campaign_tags: []
-  #   hashtags: ["#caseoh"]
-  # - twitch_login: fanum
-  #   caption_name: Fanum
-  #   campaign_tags: []
-  #   hashtags: ["#fanum"]
-  # - twitch_login: brucedropemoff
-  #   caption_name: Bruce
-  #   campaign_tags: []
-  #   hashtags: ["#brucedropemoff"]
