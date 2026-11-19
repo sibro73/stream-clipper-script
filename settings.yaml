@@ -81,6 +81,7 @@ banner:                         # Text zwischen Facecam und Gameplay, was im Cli
   timeout_s: 60
   keep_alive: 24h              # Modell bleibt in der GPU (2.9 GB), sonst ~30 s Ladezeit pro Clip
   use_as_hook: true             # Banner-Text auch als erste Caption-Zeile verwenden
+  burn_in: false                # true = Text im Video zwischen Facecam und Gameplay einblenden
 
 caption:
   provider: transcript          # Hook-Zeile: transcript (Satz aus Whisper, ohne KI) | ollama (lokal) | anthropic

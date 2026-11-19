@@ -173,7 +173,8 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
         log.info("[%s] Banner: %s", streamer.login, banner)
     fc, mv, by = layout_filter(C, cam, streamer.game_offset_x, "subs.ass")
     subtitles.write_ass(S, words, work / "subs.ass", mv if mv is not None else int(S.get("margin_v", 520)),
-                        banner, by, settings.get("banner"))
+                        banner if (settings.get("banner") or {}).get("burn_in", False) else None,
+                        by, settings.get("banner"))
 
     video = work / "clip.mp4"
     kbps = int(C["video_bitrate_k"])
