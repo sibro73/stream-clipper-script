@@ -82,7 +82,7 @@ Eine Box in `streamers.yaml` (`facecam: {x, y, w, h}`) hat immer Vorrang.
 - **Streamer:** `streamers.yaml` (neuen Block kopieren)
 - **Schwellen, Puffer, Clip-Länge, Untertitel, Bitrate:** `settings.yaml` (kommentiert)
 - Zu viele Chat-Trigger → `trigger.chat.spike_ratio` / `min_msgs` hoch; zu wenige → runter.
-- **Bandbreite:** Jede Aufnahme braucht ca. 3–5 Mbit/s Download. `buffer.max_streams` (Standard 2) begrenzt die
+- **Bandbreite:** Jede Aufnahme braucht ca. 3–5 Mbit/s Download. `buffer.max_streams` (eingestellt: 4) begrenzt die
   gleichzeitigen Aufnahmen. Kampagnen-Streamer haben Vorrang, danach gilt die Reihenfolge in `streamers.yaml`.
   **Schlaf-/AFK-Streams** werden übersprungen: Jede Minute wird der Ton geprüft (Anteil Sprache + Pegel).
   Ist es zweimal hintereinander still, rückt der nächste aktive Streamer nach. Inaktive werden alle 10 Min

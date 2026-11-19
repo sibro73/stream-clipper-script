@@ -11,7 +11,7 @@ buffer:
   minutes: 8                    # Ringpuffer pro Streamer
   segment_s: 4                  # kurze Segmente = Nachlauf ist schneller im Puffer
   quality: "720p30,720p60,720p,best"   # 720p30 spart Bandbreite (nicht jeder Kanal hat es)
-  max_streams: 2                # gleichzeitige Aufnahmen; je ~3-5 Mbit/s Download. Kampagnen-Streamer haben Vorrang
+  max_streams: 4                # gleichzeitige Aufnahmen (je ~3-5 Mbit/s Download, LAN). Kampagnen-Streamer haben Vorrang
 
 activity:                       # Schlaf-/AFK-Streams erkennen und ueberspringen (Messung am Ton)
   enabled: true
