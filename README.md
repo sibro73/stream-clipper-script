@@ -41,8 +41,19 @@ nicht in den Standby. Protokoll: `logs/live.log` (Aufnahme-Fehler: `logs/rec_<lo
 Jeder Clip kommt als Video mit: Streamer, Trigger-Grund, Uhrzeit, Latenz, **VOD-Link mit Zeitstempel**
 (falls der Streamer VODs hat) bzw. Twitch-Clip-Link, Transkript-Anfang und **Caption zum Kopieren**.
 
-Die Caption besteht aus einer Hook-Zeile (Claude Haiku, sonst Vorlage). Danach werden **immer** automatisch
-angehängt: `<caption_name> live on twitch.tv/<login>` + `campaign_tags` + `hashtags` + `extra_hashtags`.
+Die Caption besteht aus einer Hook-Zeile. Danach werden **immer** automatisch angehängt:
+`<caption_name> live on twitch.tv/<login>` + `campaign_tags` + `hashtags` + `extra_hashtags`.
+
+Den Hook liefert ein austauschbarer Generator (`caption.provider` in `settings.yaml`, Code in `live/caption.py`):
+
+| provider | Hook |
+|---|---|
+| `transcript` (Standard) | erster prägnanter Satz aus dem Whisper-Transkript, max. ~80 Zeichen, Schimpfwörter zensiert |
+| `ollama` | lokales Modell (`ollama pull llama3.2`, Einstellungen unter `caption.ollama`) |
+| `anthropic` | Claude, braucht `ANTHROPIC_API_KEY` |
+
+Fällt der Generator aus oder liefert nichts, geht es weiter mit `transcript`, danach mit einer festen Vorlage.
+In Telegram steht hinter „Caption“, woher der Hook kam.
 
 **Facecam:** Beim ersten Clip eines Streamers ohne `facecam` in `streamers.yaml` kommt ein Standbild mit der
 erkannten Box. Bis du bestätigst, kommen die Clips im Vollbild-Layout.

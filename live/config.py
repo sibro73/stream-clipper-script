@@ -33,7 +33,9 @@ DEFAULTS: dict = {
              "top_h_min": 500, "top_h_max": 860, "prefer_nvenc": True},
     "subtitles": {"enabled": True, "model": "small", "language": "en", "font": "Arial Black",
                   "size": 80, "margin_v": 520, "max_words": 3, "censor": True},
-    "caption": {"model": "claude-haiku-5-5", "extra_hashtags": ["#gta6"]},
+    "caption": {"provider": "transcript", "max_hook_chars": 80, "extra_hashtags": ["#gta6"],
+                "model": "claude-haiku-5-5",
+                "ollama": {"url": "http://localhost:11434", "model": "llama3.2", "timeout_s": 30}},
 }
 
 

@@ -54,5 +54,12 @@ subtitles:
   censor: true                  # F*CK statt FUCK in den Untertiteln (Ton bleibt)
 
 caption:
-  model: claude-haiku-5-5       # Hook-Zeile; faellt auf Vorlage zurueck, wenn die API nicht geht
-  extra_hashtags: ["#gta6"]     # zusaetzlich bei allen Streamern
+  provider: transcript          # Hook-Zeile: transcript (Satz aus Whisper, ohne KI) | ollama (lokal) | anthropic
+                                # Faellt der Generator aus: transcript, danach feste Vorlage
+  max_hook_chars: 80
+  extra_hashtags: ["#gta6"]     # zusaetzlich bei allen Streamern (Name + Pflicht-Hashtags kommen IMMER dazu)
+  ollama:                       # fuer provider: ollama  (vorher einmal: ollama pull llama3.2)
+    url: http://localhost:11434
+    model: llama3.2
+    timeout_s: 30
+  model: claude-haiku-5-5       # fuer provider: anthropic (ANTHROPIC_API_KEY in .env)

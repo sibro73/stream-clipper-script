@@ -290,8 +290,8 @@ class App:
         tr = job.tracked
         st = tr.streamer
         res = clipbuilder.build(job, tr.recorder, self.S, st, self.choose_facecam, CLIPS_DIR)
-        hook = caption.ai_hook(self.S, st, res.transcript, job.reason)
-        cap, from_ai = caption.build_caption(self.S, st, hook)
+        hook, source = caption.make_hook(self.S, st, res.transcript, job.reason)
+        cap = caption.build_caption(self.S, st, hook)
         (res.video.parent / "caption.txt").write_text(cap, encoding="utf-8")
 
         links = []
@@ -319,7 +319,7 @@ class App:
             f"▶️ {' · '.join(links)}\n"
             f"🖼 {layout}\n"
             f"🗣 {said}\n\n"
-            f"📋 Caption{'' if from_ai else ' (Vorlage)'}:\n<pre>{esc(cap)}</pre>"
+            f"📋 Caption ({source}):\n<pre>{esc(cap)}</pre>"
         )
         log.info("[%s] Clip fertig nach %.0fs: %s (%.1f MB) -> Upload", st.login, time.time() - job.detected,
                  res.video, size_mb)
