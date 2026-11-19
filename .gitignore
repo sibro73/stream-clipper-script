@@ -1,18 +1,22 @@
 # Zugangsdaten - NIE hochladen
+.env
 secrets.toml
 cronjob_urls.txt
 
 # Erzeugte Dateien / lokaler Zustand
+buffer/
+clips/
+logs/
+facecam_cache.json
+__pycache__/
+
+# Archiv: lokale Daten der alten Pipeline
 output/
 work/
-logs/
 plans/
-__pycache__/
 posted.json
 state.json
 vod_titles.json
 frame_grid.png
 layout_preview.png
-
-# Externes Tool (selbst herunterladen, siehe README)
-tools/*.exe
+**/tools/*.exe

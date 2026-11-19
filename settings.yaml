@@ -1,0 +1,58 @@
+# Einstellungen der Echtzeit-Pipeline (fehlende Werte = Standard aus live/config.py)
+
+game:
+  name: "Grand Theft Auto VI"   # game_id wird beim Start per Helix "Get Games" aufgeloest; Fallback: Name enthaelt das
+
+poll:
+  streams_s: 60                 # wer ist live?
+  clips_s: 30                   # Get Clips
+
+buffer:
+  minutes: 8                    # Ringpuffer pro Streamer
+  segment_s: 4                  # kurze Segmente = Nachlauf ist schneller im Puffer
+  quality: "720p30,720p60,720p,best"   # 720p30 spart Bandbreite (nicht jeder Kanal hat es)
+  max_streams: 2                # gleichzeitige Aufnahmen; je ~3-5 Mbit/s Download. Kampagnen-Streamer haben Vorrang
+
+trigger:
+  cooldown_s: 180               # pro Streamer, gilt fuer Chat- UND Clip-Trigger zusammen (gleicher Moment = 1 Clip)
+  clips:
+    min_clips: 2                # so viele neue Clips ...
+    window_s: 120               # ... innerhalb dieser Zeit = Trigger
+    lookback_s: 180             # started_at = jetzt - 3 Min
+  chat:
+    window_s: 10
+    history_windows: 30         # gleitender Durchschnitt ueber 30 x 10 s = 5 Min
+    warmup_windows: 6           # erst nach 1 Min Chat-Daten ausloesen
+    spike_ratio: 3.0            # >= 3x Durchschnitt ...
+    min_msgs: 15                # ... und mind. so viele Nachrichten pro Fenster
+    laugh_emotes: ["LUL", "KEKW", "LMAO", "OMEGALUL", "ICANT"]
+    laugh_ratio: 0.3            # >= 30 % der Nachrichten mit Lach-Emote ...
+    laugh_min: 10               # ... mind. 10 solche Nachrichten ...
+    laugh_vs_baseline: 2.0      # ... und doppelt so viele wie sonst
+    delay_s: 4                  # Chat reagiert ein paar Sekunden spaeter als der Moment
+
+clip:
+  pre_s: 35                     # Sekunden vor dem Moment
+  post_s: 10                    # Nachlauf nach dem Moment (wird abgewartet)  -> 45 s
+  min_s: 15
+  width: 720                    # Ausgabe 720x1280 (Quelle ist 720p, mehr bringt nichts) - 1080 = 1080x1920
+  video_bitrate_k: 2000         # ~11-13 MB bei 45 s -> schneller Upload; ueber max_mb wird automatisch neu encodiert
+  fps: 30
+  max_mb: 49                    # Telegram-Bot-Limit 50 MB
+  top_h_min: 500                # Hoehe der Facecam oben (aus dem Seitenverhaeltnis, begrenzt)
+  top_h_max: 860
+  prefer_nvenc: true
+
+subtitles:
+  enabled: true
+  model: small                  # "medium" = genauer, langsamer
+  language: en
+  font: Arial Black
+  size: 80
+  margin_v: 520                 # Abstand vom unteren Rand (TikTok-Buttons frei)
+  max_words: 3
+  censor: true                  # F*CK statt FUCK in den Untertiteln (Ton bleibt)
+
+caption:
+  model: claude-haiku-5-5       # Hook-Zeile; faellt auf Vorlage zurueck, wenn die API nicht geht
+  extra_hashtags: ["#gta6"]     # zusaetzlich bei allen Streamern

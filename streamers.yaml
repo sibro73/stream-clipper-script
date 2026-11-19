@@ -1,0 +1,37 @@
+# Streamer fuer die Echtzeit-Pipeline. Neuen Streamer = neuen Block kopieren.
+#
+#   twitch_login   Kanalname wie in der URL (twitch.tv/<login>)
+#   caption_name   Pflicht-Name in der Caption (wird IMMER eingefuegt)
+#   campaign_tags  Pflicht-Hashtags der Kampagne (werden IMMER angehaengt, zuerst)
+#   hashtags       weitere Hashtags fuer Reichweite (werden ebenfalls angehaengt)
+#   facecam        optional, manuell: {x, y, w, h} im 1920x1080-Raster. Ohne Angabe wird sie beim ersten
+#                  Clip per Gesichtserkennung vorgeschlagen und per Telegram (/ok, /redo) bestaetigt.
+#   game_offset_x  optional: Gameplay-Ausschnitt nach links (-) / rechts (+) schieben
+
+streamers:
+  - twitch_login: kaicenat          # keine Kampagne, nur Reichweite
+    caption_name: Kai Cenat
+    campaign_tags: []
+    hashtags: ["#kaicenat"]
+
+  - twitch_login: lacy
+    caption_name: Lacy
+    campaign_tags: ["#LACY"]
+    hashtags: []
+
+  - twitch_login: clix
+    caption_name: Clix
+    campaign_tags: ["#Clix"]
+    hashtags: []
+
+  - twitch_login: yourragegaming
+    caption_name: Rage
+    campaign_tags: ["#yourrage"]
+    hashtags: []
+
+  # Platz fuer weitere:
+  # - twitch_login: beispiel
+  #   caption_name: Beispiel
+  #   campaign_tags: ["#beispiel"]
+  #   hashtags: []
+  #   facecam: {x: 1440, y: 20, w: 460, h: 258}

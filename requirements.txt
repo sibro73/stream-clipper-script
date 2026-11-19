@@ -1,5 +1,9 @@
-yt-dlp
+streamlink
 faster-whisper
+opencv-python<5          # 5.x hat keine Haar-Cascades mehr
 numpy
 pillow
+requests
+PyYAML
+python-dotenv
 anthropic
