@@ -7,53 +7,48 @@
 #   facecam        optional, manuell: {x, y, w, h} im 1920x1080-Raster. Ohne Angabe wird sie beim ersten
 #                  Clip per Gesichtserkennung vorgeschlagen und per Telegram (/ok, /redo) bestaetigt.
 #   game_offset_x  optional: Gameplay-Ausschnitt nach links (-) / rechts (+) schieben
+#
+# Reihenfolge = Vorrang, wenn buffer.max_streams voll ist (Kampagnen-Streamer kommen immer zuerst).
 
 streamers:
-  - twitch_login: kaicenat          # keine Kampagne, nur Reichweite
-    caption_name: Kai Cenat
-    campaign_tags: []
-    hashtags: ["#kaicenat"]
-
   - twitch_login: lacy
     caption_name: Lacy
     campaign_tags: ["#LACY"]
     hashtags: []
 
-  - twitch_login: clix
-    caption_name: Clix
-    campaign_tags: ["#Clix"]
-    hashtags: []
-
-  - twitch_login: yourragegaming
-    caption_name: Rage
-    campaign_tags: ["#yourrage"]
-    hashtags: []
-
-  # --- weitere ohne Kampagne, nur Reichweite. Reihenfolge = Vorrang, wenn max_streams voll ist
-  #     (Kampagnen-Streamer kommen immer zuerst)
-  - twitch_login: ishowspeed
+  - twitch_login: ishowspeed        # keine Kampagne, nur Reichweite
     caption_name: Speed
     campaign_tags: []
     hashtags: ["#ishowspeed"]
 
-  - twitch_login: caseoh_
-    caption_name: CaseOh
+  - twitch_login: kaicenat          # keine Kampagne, nur Reichweite
+    caption_name: Kai Cenat
     campaign_tags: []
-    hashtags: ["#caseoh"]
+    hashtags: ["#kaicenat"]
 
-  - twitch_login: fanum
-    caption_name: Fanum
+  - twitch_login: jynxzi            # keine Kampagne, nur Reichweite
+    caption_name: Jynxzi
     campaign_tags: []
-    hashtags: ["#fanum"]
+    hashtags: ["#jynxzi"]
 
-  - twitch_login: brucedropemoff
-    caption_name: Bruce
-    campaign_tags: []
-    hashtags: ["#brucedropemoff"]
-
-  # Platz fuer weitere:
-  # - twitch_login: beispiel
-  #   caption_name: Beispiel
-  #   campaign_tags: ["#beispiel"]
+  # Entfernt am 2026-11-19 (bei Bedarf wieder einkommentieren):
+  # - twitch_login: yourragegaming
+  #   caption_name: Rage
+  #   campaign_tags: ["#yourrage"]
   #   hashtags: []
-  #   facecam: {x: 1440, y: 20, w: 460, h: 258}
+  # - twitch_login: clix
+  #   caption_name: Clix
+  #   campaign_tags: ["#Clix"]
+  #   hashtags: []
+  # - twitch_login: caseoh_
+  #   caption_name: CaseOh
+  #   campaign_tags: []
+  #   hashtags: ["#caseoh"]
+  # - twitch_login: fanum
+  #   caption_name: Fanum
+  #   campaign_tags: []
+  #   hashtags: ["#fanum"]
+  # - twitch_login: brucedropemoff
+  #   caption_name: Bruce
+  #   campaign_tags: []
+  #   hashtags: ["#brucedropemoff"]
