@@ -138,7 +138,7 @@ PROVIDERS: dict[str, HookFn] = {
 DESCRIBE = (
     "You see frames from a short clip of the Twitch streamer {name} playing GTA 6, plus what was said. "
     "Write ONE short line (max {words} words) that says what happens in the clip, like a TikTok clip title. "
-    "Third person, present tense, name the streamer as {name}. Examples: "
+    "Third person, present tense, always call the streamer {name} (never he/she/they). Examples: "
     "'{name} tries to rob a bank but fails', '{name} gets betrayed by his own crew', "
     "'{name} crashes into a cop car at full speed'. "
     "Only describe what the frames or the speech show; if unsure, describe the reaction. "
@@ -156,6 +156,21 @@ def _jpeg_b64(frame, width: int = 672) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
+def warm_banner(S: dict):
+    """Modell beim Start in die GPU laden (erster Aufruf dauert sonst ~30 s laenger)."""
+    B = S["banner"]
+    if not B.get("enabled", True):
+        return
+    import requests
+    url = S["caption"].get("ollama", {}).get("url", "http://localhost:11434").rstrip("/")
+    try:
+        requests.post(f"{url}/api/generate", timeout=120,
+                      json={"model": B.get("model", "gemma3:4b"), "keep_alive": B.get("keep_alive", "24h")})
+        log.info("Banner-Modell %s geladen", B.get("model", "gemma3:4b"))
+    except Exception as e:
+        log.info("Banner-Modell nicht geladen (%s) - Clips ohne Banner", str(e)[:80])
+
+
 def describe(S: dict, streamer: Streamer, transcript: str, frames: list) -> str | None:
     """Kurzer Banner-Text ueber den Clip (lokales Bild-Sprachmodell ueber Ollama). None = kein Banner."""
     B = S["banner"]
@@ -167,7 +182,7 @@ def describe(S: dict, streamer: Streamer, transcript: str, frames: list) -> str 
     try:
         r = requests.post(f"{O.get('url', 'http://localhost:11434').rstrip('/')}/api/chat",
                           timeout=B.get("timeout_s", 40),
-                          json={"model": B.get("model", "gemma3:4b"), "stream": False, "keep_alive": "30m",
+                          json={"model": B.get("model", "gemma3:4b"), "stream": False, "keep_alive": B.get("keep_alive", "24h"),
                                 "options": {"temperature": 0.6, "num_predict": 40},
                                 "messages": [
                                     {"role": "system", "content": DESCRIBE.format(name=streamer.caption_name,

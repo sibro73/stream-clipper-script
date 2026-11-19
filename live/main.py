@@ -162,6 +162,7 @@ class App:
             subtitles.model(self.S["subtitles"])
         except Exception as e:
             log.warning("Whisper vorladen: %s", e)
+        caption.warm_banner(self.S)
 
     # ------------------------------------------------------------------ Live-Erkennung
 
