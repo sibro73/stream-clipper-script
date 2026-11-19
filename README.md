@@ -9,8 +9,10 @@ Du machst nur noch: **Clip anschauen → posten → einreichen.**
 ```
 Helix "Get Streams" (60 s) ──► live + GTA VI? ──► streamlink 720p ─► ffmpeg ─► buffer/<login>/*.ts (8 Min)
                                                  └► Chat (IRC, anonym)
-Trigger:  ≥2 neue Twitch-Clips in 2 Min (Get Clips, 30 s)  │  Chat-Spike ≥3x / Lach-Emotes
-          └── Cooldown 3 Min pro Streamer (gleicher Moment = 1 Clip) ──► 35 s vor + 10 s nach dem Moment
+Signale:  Twitch-Clips von verschiedenen Leuten (Get Clips, 30 s)  │  Chat-Spike / Lach-Emotes (IRC)
+Trigger:  STARK allein (Chat ≥5x, ≥25 Lacher/10 s, Clips von ≥4 Leuten)
+          oder SCHWACH + SCHWACH: Chat (≥3x) UND Clips (≥2 Leute) zum gleichen Moment (±2 Min)
+          └── Cooldown 5 Min pro Streamer ──► Moment = lautester Punkt im Ton ──► 14 s davor + 6 s danach (20 s)
           ──► Whisper-Untertitel ─► 9:16 ─► < 50 MB ─► Telegram (Video, Caption, VOD-Link, Thumbnail)
 ```
 
@@ -74,6 +76,9 @@ Eine Box in `streamers.yaml` (`facecam: {x, y, w, h}`) hat immer Vorrang.
 - Zu viele Chat-Trigger → `trigger.chat.spike_ratio` / `min_msgs` hoch; zu wenige → runter.
 - **Bandbreite:** Jede Aufnahme braucht ca. 3–5 Mbit/s Download. `buffer.max_streams` (Standard 2) begrenzt die
   gleichzeitigen Aufnahmen. Kampagnen-Streamer haben Vorrang, danach gilt die Reihenfolge in `streamers.yaml`.
+  **Schlaf-/AFK-Streams** werden übersprungen: Jede Minute wird der Ton geprüft (Anteil Sprache + Pegel).
+  Ist es zweimal hintereinander still, rückt der nächste aktive Streamer nach. Inaktive werden alle 10 Min
+  kurz über den Audio-Stream geprüft und kommen zurück, sobald sie wieder reden (`activity` in `settings.yaml`).
   Eine volle Leitung bremst den Upload der Clips stark und führt zu Lücken im Puffer. Mit LAN-Kabel statt WLAN
   läuft es deutlich besser.
 

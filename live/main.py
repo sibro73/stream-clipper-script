@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import caption, clipbuilder, facecam
+from . import activity, caption, clipbuilder, facecam
 from .chat import ChatWatcher
 from .config import ROOT, FacecamCache, Streamer, env, load_settings, load_streamers
 from .recorder import Recorder
@@ -46,11 +46,13 @@ class Tracked:
     since: float
     seen_clips: set = field(default_factory=set)
     seeded: bool = False
-    recent_clips: list = field(default_factory=list)   # (created_at, url)
+    recent_clips: list = field(default_factory=list)   # (created_at, url, creator_id)
+    weak: list = field(default_factory=list)           # schwache Signale (kind, moment, reason, clip_url, seen)
     last_moment: float = 0.0
     vod: dict | None = None
     vod_checked: float = 0.0
     test_fired: bool = False
+    idle_hits: int = 0
 
 
 def setup_logging():
@@ -94,7 +96,7 @@ class App:
         self.jobs: queue.Queue[Job] = queue.Queue()
         self.sendq: queue.Queue = queue.Queue()
         self.pending_cam: dict[str, dict] = {}      # login -> {box, msg_id, frames}
-        self.chat = ChatWatcher(self.S, lambda l, m, r: self.trigger(l, m, r, "chat"))
+        self.chat = ChatWatcher(self.S, lambda l, m, r, s: self.signal(l, m, r, "chat", s))
         self.users: dict[str, dict] = {}
         self.game_id: str | None = None
         self._stop = threading.Event()
@@ -104,6 +106,7 @@ class App:
     def run(self):
         keep_awake()
         self.users = self.helix.users(list(self.streamers))
+        self.sleeping: dict[str, dict] = {}     # login -> {since, next_probe, why, probing}
         for login in self.streamers:
             if login not in self.users:
                 log.warning("Twitch-Login '%s' nicht gefunden - pruefe streamers.yaml", login)
@@ -117,6 +120,8 @@ class App:
         threading.Thread(target=self.worker, name="worker", daemon=True).start()
         threading.Thread(target=self.sender, name="sender", daemon=True).start()
         threading.Thread(target=self._warm_whisper, name="warmup", daemon=True).start()
+        if self.S["activity"].get("enabled", True) and not self.args.test_trigger:
+            threading.Thread(target=self.activity_loop, name="activity", daemon=True).start()
         try:
             self.tg.send_text(f"🟢 <b>Clipper live</b> gestartet – beobachte {len(self.users)} Streamer"
                               f"{' (alle Spiele, Testmodus)' if self.args.any_game else ''}.")
@@ -173,7 +178,18 @@ class App:
         # Bandbreite: hoechstens max_streams gleichzeitig; Kampagnen-Streamer zuerst, dann Reihenfolge in streamers.yaml
         order = sorted(ids.items(), key=lambda kv: (not self.streamers[kv[1]].campaign,
                                                      list(self.streamers).index(kv[1])))
-        eligible = [login for uid, login in order if live.get(uid) and self.game_ok(live[uid])]
+        A = self.S["activity"]
+        for uid, login in order:      # Titel "sleep stream" o.ae. -> sofort inaktiv
+            s = live.get(uid)
+            if s and A.get("enabled", True) and activity.title_says_sleep(s.get("title", ""), A) \
+                    and login not in self.sleeping:
+                self.mark_sleeping(login, f"Titel: {s.get('title', '')[:60]}")
+        titles = {s["user_login"]: s.get("title", "") for s in live.values()}
+        for login in [l for l, z in self.sleeping.items() if l not in titles or (
+                z["why"].startswith("Titel") and not activity.title_says_sleep(titles[l], A))]:
+            del self.sleeping[login]        # offline oder Titel geaendert -> neu bewerten
+        eligible = [login for uid, login in order
+                    if live.get(uid) and self.game_ok(live[uid]) and login not in self.sleeping]
         limit = int(self.S["buffer"].get("max_streams") or 0)
         allowed = set(eligible[:limit] if limit else eligible)
         with self.lock:
@@ -189,11 +205,62 @@ class App:
                     tr.stream = s
                 elif tr and not ok:
                     why = ("offline" if not s else f"spielt jetzt '{s.get('game_name')}'" if not self.game_ok(s)
+                           else f"inaktiv ({self.sleeping[login]['why']})" if login in self.sleeping
                            else "Limit buffer.max_streams - Streamer mit hoeherer Prioritaet ist live")
                     self.stop_tracking(login, why)
                 if login in self.tracked:
                     self._update_vod(self.tracked[login])
             self.chat.set_channels(set(self.tracked))
+
+    # ------------------------------------------------------------------ Aktivitaet (Schlaf-/AFK-Streams)
+
+    def mark_sleeping(self, login: str, why: str):
+        A = self.S["activity"]
+        self.sleeping[login] = {"since": time.time(), "why": why, "probing": False,
+                                "next_probe": time.time() + A["recheck_min"] * 60}
+        log.info("[%s] INAKTIV (%s) -> nicht aufnehmen, naechster Streamer rueckt nach; neue Pruefung in %d Min",
+                 login, why, A["recheck_min"])
+
+    def activity_loop(self):
+        A = self.S["activity"]
+        while not self._stop.is_set():
+            self._stop.wait(A["check_s"])
+            with self.lock:
+                tracked = list(self.tracked.items())
+                due = [l for l, z in self.sleeping.items()
+                       if not z["probing"] and time.time() >= z["next_probe"] and not z["why"].startswith("Titel")]
+            for login, tr in tracked:
+                try:
+                    a = activity.measure_buffer(tr.recorder, A["window_s"])
+                except Exception as e:
+                    log.warning("[%s] Aktivitaets-Messung: %s", login, e)
+                    continue
+                if a is None:
+                    continue
+                tr.idle_hits = tr.idle_hits + 1 if activity.is_idle(a, A) else 0
+                log.debug("[%s] Aktivitaet: %s (still %dx)", login, a, tr.idle_hits)
+                if tr.idle_hits >= A["idle_checks"]:
+                    with self.lock:
+                        self.mark_sleeping(login, f"{a} ueber {tr.idle_hits} Messungen")
+                    self._safe(self.poll_streams)      # sofort umschalten
+            for login in due:
+                self.sleeping[login]["probing"] = True
+                threading.Thread(target=self._reprobe, args=(login,), daemon=True).start()
+
+    def _reprobe(self, login: str):
+        A = self.S["activity"]
+        a = activity.probe(login, A["probe_s"])
+        with self.lock:
+            z = self.sleeping.get(login)
+            if not z:
+                return
+            z["probing"] = False
+            if a and not activity.is_idle(a, A):
+                del self.sleeping[login]
+                log.info("[%s] wieder AKTIV (%s) -> darf wieder aufgenommen werden", login, a)
+            else:
+                z["next_probe"] = time.time() + A["recheck_min"] * 60
+                log.info("[%s] weiterhin inaktiv (%s)", login, a or "keine Messung")
 
     def start_tracking(self, login: str, uid: str, s: dict):
         rec = Recorder(login, self.S)
@@ -233,14 +300,14 @@ class App:
                 tr.seeded = True
                 continue
             now = time.time()
-            tr.recent_clips += [(parse_ts(c["created_at"]), c["url"]) for c in new]
+            tr.recent_clips += [(parse_ts(c["created_at"]), c["url"], c.get("creator_id") or c["id"]) for c in new]
             tr.recent_clips = [x for x in tr.recent_clips if x[0] >= now - T["window_s"]]
-            if len(tr.recent_clips) >= T["min_clips"]:
+            people = len({x[2] for x in tr.recent_clips})      # ein Bot/Auto-Clipper zaehlt nur einmal
+            if people >= T["min_clips"]:
                 first = min(tr.recent_clips)
-                n = len(tr.recent_clips)
                 tr.recent_clips = []
-                self.trigger(login, first[0], f"{n} neue Twitch-Clips in {T['window_s'] // 60} Min", "clips",
-                             clip_url=first[1])
+                self.signal(login, first[0], f"Twitch-Clips von {people} Leuten in {T['window_s'] // 60} Min",
+                            "clips", people >= T.get("strong_min", 4), clip_url=first[1])
 
     def _test_triggers(self):
         with self.lock:
@@ -251,6 +318,26 @@ class App:
                                      daemon=True).start()
 
     # ------------------------------------------------------------------ Trigger -> Job
+
+    def signal(self, login: str, moment: float, reason: str, kind: str, strong: bool, clip_url: str | None = None):
+        """Nur die besten Momente: starkes Signal allein, oder Chat UND Clips (je schwach) zum gleichen Moment."""
+        if strong:
+            return self.trigger(login, moment, reason + " (stark)", kind, clip_url)
+        win = float(self.S["trigger"].get("confirm_s", 120))
+        with self.lock:
+            tr = self.tracked.get(login)
+            if not tr:
+                return
+            now = time.time()
+            tr.weak = [w for w in tr.weak if now - w[4] < win + 60]
+            match = next((w for w in tr.weak if w[0] != kind and abs(w[1] - moment) <= win), None)
+            if not match:
+                tr.weak.append((kind, moment, reason, clip_url, now))
+                log.info("[%s] schwaches Signal gemerkt (%s): %s - wartet auf Bestaetigung", login, kind, reason)
+                return
+            tr.weak.remove(match)
+        chat_m = moment if kind == "chat" else match[1]       # Chat-Zeitpunkt ist genauer
+        self.trigger(login, chat_m, f"{match[2]} + {reason}", "chat+clips", clip_url or match[3])
 
     def trigger(self, login: str, moment: float, reason: str, kind: str, clip_url: str | None = None):
         cd = self.S["trigger"]["cooldown_s"]
@@ -314,7 +401,7 @@ class App:
             f"🎬 <b>{esc(st.caption_name)}</b> · {esc(tr.stream.get('game_name') or '')}"
             f"{' · Kampagne' if st.campaign else ''}\n"
             f"⚡ {esc(job.reason)}\n"
-            f"🕒 {time.strftime('%H:%M:%S', time.localtime(job.moment))} · fertig nach "
+            f"🕒 {time.strftime('%H:%M:%S', time.localtime(res.moment))} · fertig nach "
             f"{time.time() - job.detected:.0f}s · {res.duration:.0f}s · {size_mb:.1f} MB\n"
             f"▶️ {' · '.join(links)}\n"
             f"🖼 {layout}\n"
@@ -455,6 +542,8 @@ class App:
             rows = [f"• <b>{esc(l)}</b>: {esc(t.stream.get('game_name') or '')}, Puffer "
                     f"{t.recorder.buffered_seconds():.0f}s · {esc(chat.get(l, 'Chat verbindet …'))}"
                     for l, t in self.tracked.items()]
+            rows += [f"💤 <b>{esc(l)}</b>: inaktiv seit {(time.time() - z['since']) / 60:.0f} Min ({esc(z['why'])})"
+                     for l, z in self.sleeping.items()]
         self.tg.send_text("📊 <b>Status</b>\n" + ("\n".join(rows) or "Niemand live (mit passendem Spiel).")
                           + f"\nWarteschlange: {self.jobs.qsize()}")
 

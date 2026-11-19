@@ -29,6 +29,7 @@ class ClipResult:
     clip_start: float            # Epoch des ersten Clip-Frames
     transcript: str
     layout: str                  # "facecam" oder "vollbild"
+    moment: float = 0.0          # verfeinerter Moment (lautester Punkt im Ton)
     frames: list = field(default_factory=list)   # Stichproben (RGB 1920x1080) fuer die Facecam-Suche
 
 
@@ -70,6 +71,21 @@ def grab_frames(input_args: list[str], duration: float, n: int) -> list[np.ndarr
             for i in range(0, len(r.stdout) - size + 1, size)]
 
 
+def audio_peak(src: Path, start: float, dur: float, smooth_s: float = 1.0) -> float | None:
+    """Sekunde (relativ zu start) mit der hoechsten Lautstaerke - Schrei/Lacher = Pointe."""
+    sr, hop = 8000, 800                                 # 0.1-s-Schritte
+    r = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", str(src),
+                        "-map", "0:a:0", "-ac", "1", "-ar", str(sr), "-f", "s16le", "-"], capture_output=True)
+    a = np.frombuffer(r.stdout, dtype=np.int16).astype(np.float32)
+    n = len(a) // hop
+    if n < 20:
+        return None
+    rms = np.sqrt((a[: n * hop].reshape(n, hop) ** 2).mean(axis=1))
+    k = max(1, int(smooth_s * 10))
+    rms = np.convolve(rms, np.ones(k) / k, mode="same")
+    return float(np.argmax(rms)) / 10
+
+
 def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[str, int]:
     """filter_complex + MarginV fuer die Untertitel.
 
@@ -104,7 +120,10 @@ def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[
 
 def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root: Path) -> ClipResult:
     C, S = settings["clip"], settings["subtitles"]
-    A, B = job.moment - C["pre_s"], job.moment + C["post_s"]
+    back, fwd = float(C.get("peak_search_back_s", 12)), float(C.get("peak_search_fwd_s", 4))
+    if job.kind == "test":
+        back = fwd = 0.0
+    A, B = job.moment - back - C["pre_s"], job.moment + fwd + C["post_s"]     # erst grosszuegig, dann zuschneiden
     if not wait_for_buffer(rec, B, timeout=max(15.0, B - time.time()) + rec.seg_s * 3 + 20):
         log.warning("[%s] Segment nach Moment nicht rechtzeitig fertig - nehme was da ist", streamer.login)
     segs = [s for s in rec.segments() if s.end > A and s.start < B]
@@ -119,11 +138,7 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
         raise RuntimeError("Kein Puffer fuer diesen Moment vorhanden")
     block = next((g for g in groups if g[0].start <= job.moment <= g[-1].end + 1),
                  max(groups, key=lambda g: g[-1].end - g[0].start))
-    A = max(A, block[0].start)
-    B = min(B, block[-1].end)
-    dur = B - A
-    if dur < C["min_s"]:
-        raise RuntimeError(f"Nur {dur:.0f}s im Puffer - zu kurz")
+    lo, hi = block[0].start, block[-1].end
 
     work = out_root / f"{time.strftime('%Y%m%d-%H%M%S', time.localtime(job.moment))}_{streamer.login}"
     work.mkdir(parents=True, exist_ok=True)
@@ -132,7 +147,19 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
         for s in block:
             with open(s.path, "rb") as f:
                 shutil.copyfileobj(f, out)
-    off = A - block[0].start
+
+    moment = job.moment
+    s0, s1 = max(lo, moment - back), min(hi, moment + fwd)
+    if s1 - s0 >= 2:
+        p = audio_peak(src, s0 - lo, s1 - s0)
+        if p is not None:
+            moment = s0 + p
+            log.info("[%s] Ton-Peak %+.1fs vom Trigger-Moment", streamer.login, moment - job.moment)
+    A, B = max(lo, moment - C["pre_s"]), min(hi, moment + C["post_s"])
+    dur = B - A
+    if dur < C["min_s"]:
+        raise RuntimeError(f"Nur {dur:.0f}s im Puffer - zu kurz")
+    off = A - lo
     inp = ["-ss", f"{off:.3f}", "-t", f"{dur:.3f}", "-i", str(src)]
 
     frames = grab_frames(inp, dur, 8)
@@ -157,7 +184,7 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
         log.info("[%s] %.1f MB > Limit -> neu mit %d kbit/s", streamer.login, size / 1e6, kbps)
 
     # Thumbnail = Frame am Trigger-Moment
-    t_moment = min(max(0.0, job.moment - A), dur - 0.5)
+    t_moment = min(max(0.0, moment - A), dur - 0.5)
     cover, thumb = work / "cover.jpg", work / "thumb.jpg"
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{t_moment:.2f}", "-i", str(video), "-frames:v", "1",
                     "-q:v", "3", str(cover)], check=True, capture_output=True)
@@ -165,4 +192,4 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
                     str(thumb)], check=True, capture_output=True)
     src.unlink(missing_ok=True)
     return ClipResult(video, thumb, cover, dur, A, " ".join(w.word.strip() for w in words),
-                      "facecam" if cam else "vollbild", frames)
+                      "facecam" if cam else "vollbild", moment=moment, frames=frames)

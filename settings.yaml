@@ -13,28 +13,48 @@ buffer:
   quality: "720p30,720p60,720p,best"   # 720p30 spart Bandbreite (nicht jeder Kanal hat es)
   max_streams: 2                # gleichzeitige Aufnahmen; je ~3-5 Mbit/s Download. Kampagnen-Streamer haben Vorrang
 
+activity:                       # Schlaf-/AFK-Streams erkennen und ueberspringen (Messung am Ton)
+  enabled: true
+  check_s: 60                   # getrackte Streams jede Minute pruefen ...
+  window_s: 120                 # ... ueber die letzten 2 Min Ton
+  idle_checks: 2                # so oft hintereinander still = inaktiv -> naechster Streamer rueckt nach
+  speech_min: 0.03              # < 3 % Sprache = still
+  speech_low: 0.08              # < 8 % Sprache UND leiser als quiet_db = still
+  quiet_db: -40                 # (aktiv gemessen: -13 bis -31 dBFS, Schlaf-Stream: -50)
+  recheck_min: 10               # Inaktive alle 10 Min kurz reinhoeren (audio_only, belegt keinen Platz)
+  probe_s: 60
+  sleep_words: ["sleep stream", "sleepstream", "sleeping", "zzz+", "schlafstream", "schlafen"]   # im Titel = sofort inaktiv ("no sleep" zaehlt nicht)
+
 trigger:
-  cooldown_s: 180               # pro Streamer, gilt fuer Chat- UND Clip-Trigger zusammen (gleicher Moment = 1 Clip)
+  # Nur die besten Momente: ein STARKES Signal loest allein aus. Ein SCHWACHES nur, wenn das andere
+  # (Chat <-> Clips) innerhalb von confirm_s zum gleichen Moment auch anschlaegt.
+  cooldown_s: 300               # pro Streamer, gilt fuer alle Trigger zusammen (gleicher Moment = 1 Clip)
+  confirm_s: 120
   clips:
-    min_clips: 2                # so viele neue Clips ...
-    window_s: 120               # ... innerhalb dieser Zeit = Trigger
+    min_clips: 2                # Clips von so vielen VERSCHIEDENEN Leuten = schwach ...
+    strong_min: 4               # ... so viele = stark
+    window_s: 120               # ... innerhalb dieser Zeit
     lookback_s: 180             # started_at = jetzt - 3 Min
   chat:
     window_s: 10
     history_windows: 30         # gleitender Durchschnitt ueber 30 x 10 s = 5 Min
     warmup_windows: 6           # erst nach 1 Min Chat-Daten ausloesen
-    spike_ratio: 3.0            # >= 3x Durchschnitt ...
+    spike_ratio: 3.0            # >= 3x Durchschnitt = schwach ...
+    strong_ratio: 5.0           # >= 5x = stark
     min_msgs: 15                # ... und mind. so viele Nachrichten pro Fenster
     laugh_emotes: ["LUL", "KEKW", "LMAO", "OMEGALUL", "ICANT"]
     laugh_ratio: 0.3            # >= 30 % der Nachrichten mit Lach-Emote ...
     laugh_min: 10               # ... mind. 10 solche Nachrichten ...
-    laugh_vs_baseline: 2.0      # ... und doppelt so viele wie sonst
+    laugh_vs_baseline: 2.0      # ... und doppelt so viele wie sonst = schwach
+    laugh_strong_min: 25        # so viele Lach-Nachrichten in 10 s = stark
     delay_s: 4                  # Chat reagiert ein paar Sekunden spaeter als der Moment
 
 clip:
-  pre_s: 35                     # Sekunden vor dem Moment
-  post_s: 10                    # Nachlauf nach dem Moment (wird abgewartet)  -> 45 s
-  min_s: 15
+  pre_s: 14                     # Sekunden vor dem Moment
+  post_s: 6                     # Nachlauf nach dem Moment (wird abgewartet)  -> 20 s
+  min_s: 10
+  peak_search_back_s: 12        # Moment = lautester Punkt im Ton zwischen Trigger -12 s ...
+  peak_search_fwd_s: 4          # ... und +4 s (Chat reagiert verspaetet, Schrei/Lacher = Pointe)
   width: 720                    # Ausgabe 720x1280 (Quelle ist 720p, mehr bringt nichts) - 1080 = 1080x1920
   video_bitrate_k: 2000         # ~11-13 MB bei 45 s -> schneller Upload; ueber max_mb wird automatisch neu encodiert
   fps: 30

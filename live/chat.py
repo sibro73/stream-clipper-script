@@ -23,9 +23,9 @@ class ChanStats:
 
 
 class ChatWatcher(threading.Thread):
-    """Eine IRC-Verbindung fuer alle Kanaele; ruft on_trigger(login, moment, reason) auf."""
+    """Eine IRC-Verbindung fuer alle Kanaele; ruft on_trigger(login, moment, reason, strong) auf."""
 
-    def __init__(self, settings: dict, on_trigger: Callable[[str, float, str], None]):
+    def __init__(self, settings: dict, on_trigger: Callable[[str, float, str, bool], None]):
         super().__init__(name="chat", daemon=True)
         C = settings["trigger"]["chat"]
         self.C = C
@@ -145,27 +145,29 @@ class ChatWatcher(threading.Thread):
         with self.lock:
             for ch, s in self.stats.items():
                 n, lg = s.msgs, s.laughs
-                reason = None
+                reason, strong = None, False
                 if len(s.hist_msgs) >= C["warmup_windows"]:
                     base = sum(s.hist_msgs) / len(s.hist_msgs)
                     base_l = sum(s.hist_laughs) / len(s.hist_laughs)
                     ratio = n / max(base, 1.0)
                     if n >= C["min_msgs"] and ratio >= C["spike_ratio"]:
                         reason = f"Chat-Spike {ratio:.1f}x ({n} Nachr./{C['window_s']}s, Schnitt {base:.0f})"
+                        strong = ratio >= C.get("strong_ratio", 5.0)
                     elif (lg >= C["laugh_min"] and n and lg / n >= C["laugh_ratio"]
                           and lg >= C["laugh_vs_baseline"] * max(base_l, 1.0)):
-                        reason = f"Lach-Welle: {lg}/{n} Nachr. mit LUL/KEKW/LMAO/OMEGALUL/ICANT"
+                        reason = f"Lach-Welle: {lg}/{n} Nachr. mit Lach-Emotes"
+                        strong = lg >= C.get("laugh_strong_min", 25)
                 if reason:
-                    fired.append((ch, reason))
+                    fired.append((ch, reason, strong))
                 s.hist_msgs.append(n)
                 s.hist_laughs.append(lg)
                 while len(s.hist_msgs) > C["history_windows"]:
                     s.hist_msgs.popleft()
                     s.hist_laughs.popleft()
                 s.msgs = s.laughs = 0
-        for ch, reason in fired:
+        for ch, reason, strong in fired:
             moment = window_end - float(C["delay_s"])
             try:
-                self.on_trigger(ch, moment, reason)
+                self.on_trigger(ch, moment, reason, strong)
             except Exception:
                 log.exception("on_trigger")

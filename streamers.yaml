@@ -29,6 +29,28 @@ streamers:
     campaign_tags: ["#yourrage"]
     hashtags: []
 
+  # --- weitere ohne Kampagne, nur Reichweite. Reihenfolge = Vorrang, wenn max_streams voll ist
+  #     (Kampagnen-Streamer kommen immer zuerst)
+  - twitch_login: ishowspeed
+    caption_name: Speed
+    campaign_tags: []
+    hashtags: ["#ishowspeed"]
+
+  - twitch_login: caseoh_
+    caption_name: CaseOh
+    campaign_tags: []
+    hashtags: ["#caseoh"]
+
+  - twitch_login: fanum
+    caption_name: Fanum
+    campaign_tags: []
+    hashtags: ["#fanum"]
+
+  - twitch_login: brucedropemoff
+    caption_name: Bruce
+    campaign_tags: []
+    hashtags: ["#brucedropemoff"]
+
   # Platz fuer weitere:
   # - twitch_login: beispiel
   #   caption_name: Beispiel
