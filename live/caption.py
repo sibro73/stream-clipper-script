@@ -133,6 +133,58 @@ PROVIDERS: dict[str, HookFn] = {
 }
 
 
+# --------------------------------------------------------------------------- Banner: was passiert im Clip?
+
+DESCRIBE = (
+    "You see frames from a short clip of the Twitch streamer {name} playing GTA 6, plus what was said. "
+    "Write ONE short line (max {words} words) that says what happens in the clip, like a TikTok clip title. "
+    "Third person, present tense, name the streamer as {name}. Examples: "
+    "'{name} tries to rob a bank but fails', '{name} gets betrayed by his own crew', "
+    "'{name} crashes into a cop car at full speed'. "
+    "Only describe what the frames or the speech show; if unsure, describe the reaction. "
+    "No emojis, no hashtags, no quotation marks. Output only the line."
+)
+
+
+def _jpeg_b64(frame, width: int = 672) -> str:
+    import base64, io
+    from PIL import Image
+    img = Image.fromarray(frame)
+    img = img.resize((width, int(img.height * width / img.width)))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=80)
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def describe(S: dict, streamer: Streamer, transcript: str, frames: list) -> str | None:
+    """Kurzer Banner-Text ueber den Clip (lokales Bild-Sprachmodell ueber Ollama). None = kein Banner."""
+    B = S["banner"]
+    if not B.get("enabled", True):
+        return None
+    import requests
+    O = S["caption"].get("ollama", {})
+    pick = [frames[i] for i in sorted({len(frames) * k // 4 for k in (1, 2, 3)}) if i < len(frames)] if frames else []
+    try:
+        r = requests.post(f"{O.get('url', 'http://localhost:11434').rstrip('/')}/api/chat",
+                          timeout=B.get("timeout_s", 40),
+                          json={"model": B.get("model", "gemma3:4b"), "stream": False, "keep_alive": "30m",
+                                "options": {"temperature": 0.6, "num_predict": 40},
+                                "messages": [
+                                    {"role": "system", "content": DESCRIBE.format(name=streamer.caption_name,
+                                                                                  words=B.get("max_words", 9))},
+                                    {"role": "user", "content": f"Speech in the clip: {transcript[:800] or '(none)'}",
+                                     "images": [_jpeg_b64(f) for f in pick]}]})
+        r.raise_for_status()
+        text = r.json().get("message", {}).get("content", "")
+    except Exception as e:
+        log.info("Banner: Ollama nicht erreichbar/fehlgeschlagen (%s) -> kein Banner", str(e)[:100])
+        return None
+    text = re.sub(r"[#*\"“”]", "", (text.strip().splitlines() or [""])[0]).strip(" .")
+    if not text or len(text) > int(B.get("max_chars", 60)) + 20:
+        return None
+    return _censor(text)
+
+
 # --------------------------------------------------------------------------- Zusammenbau
 
 def make_hook(S: dict, streamer: Streamer, transcript: str, reason: str) -> tuple[str, str]:

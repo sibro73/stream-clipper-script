@@ -38,6 +38,8 @@ DEFAULTS: dict = {
                  "speech_min": 0.03, "speech_low": 0.08, "quiet_db": -40,
                  "recheck_min": 10, "probe_s": 60,
                  "sleep_words": ["sleep stream", "sleepstream", "sleeping", "zzz+", "schlafstream", "schlafen"]},
+    "banner": {"enabled": True, "model": "gemma3:4b", "max_words": 9, "max_chars": 60, "timeout_s": 40,
+               "size": 62, "use_as_hook": True},
     "caption": {"provider": "transcript", "max_hook_chars": 80, "extra_hashtags": ["#gta6"],
                 "model": "claude-haiku-5-5",
                 "ollama": {"url": "http://localhost:11434", "model": "llama3.2", "timeout_s": 30}},

@@ -30,6 +30,7 @@ class ClipResult:
     transcript: str
     layout: str                  # "facecam" oder "vollbild"
     moment: float = 0.0          # verfeinerter Moment (lautester Punkt im Ton)
+    banner: str | None = None    # Text zwischen Facecam und Gameplay
     frames: list = field(default_factory=list)   # Stichproben (RGB 1920x1080) fuer die Facecam-Suche
 
 
@@ -86,8 +87,8 @@ def audio_peak(src: Path, start: float, dur: float, smooth_s: float = 1.0) -> fl
     return float(np.argmax(rms)) / 10
 
 
-def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[str, int]:
-    """filter_complex + MarginV fuer die Untertitel.
+def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[str, int | None, int]:
+    """filter_complex, MarginV fuer die Untertitel, Banner-y (ASS-Raster 1080x1920).
 
     Direkt in Ausgabegroesse (z.B. 720x1280) gebaut, ohne Umweg ueber 1080p. Facecam-Koordinaten sind im
     1920x1080-Raster und werden per iw/ih auf die echte Quellgroesse umgerechnet."""
@@ -107,7 +108,7 @@ def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[
               f"scale={ow}:{top}:force_original_aspect_ratio=increase,crop={ow}:{top}[cam];"
               f"[b]crop={sx(gw)}:ih:{sx(gx)}:0,scale={ow}:{bot}[game];"
               f"[cam][game]vstack=inputs=2,{out}")
-        return fc, None
+        return fc, None, int(top * 1920 / oh)          # Banner auf der Naht Facecam/Gameplay
     # Vollbild-Variante (keine Facecam gefunden): Stream mittig, unscharfer Hintergrund
     fh = even(ow * 9 / 16)
     fc = ("[0:v]setsar=1,split=2[a][b];"
@@ -115,10 +116,11 @@ def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[
           f"eq=brightness=-0.12,scale={ow}:{oh}[bg];"
           f"[b]scale={ow}:{fh}[fg];"
           f"[bg][fg]overlay=0:(H-h)/2,{out}")
-    return fc, (1920 - 1080 * 9 // 16) // 2 - 110   # MarginV (ASS-Raster 1080x1920): knapp unter dem Bild
+    return fc, (1920 - 1080 * 9 // 16) // 2 - 110, (1920 - 1080 * 9 // 16) // 2 - 90   # Subs unter, Banner ueber dem Bild
 
 
-def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root: Path) -> ClipResult:
+def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root: Path,
+          describe=None) -> ClipResult:
     C, S = settings["clip"], settings["subtitles"]
     back, fwd = float(C.get("peak_search_back_s", 12)), float(C.get("peak_search_fwd_s", 4))
     if job.kind == "test":
@@ -165,8 +167,13 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
     frames = grab_frames(inp, dur, 8)
     cam = choose_facecam(streamer, frames)
     words = subtitles.transcribe(S, inp) if S.get("enabled", True) else []
-    fc, mv = layout_filter(C, cam, streamer.game_offset_x, "subs.ass")
-    subtitles.write_ass(S, words, work / "subs.ass", mv if mv is not None else int(S.get("margin_v", 520)))
+    transcript = " ".join(w.word.strip() for w in words)
+    banner = describe(streamer, transcript, frames) if describe else None
+    if banner:
+        log.info("[%s] Banner: %s", streamer.login, banner)
+    fc, mv, by = layout_filter(C, cam, streamer.game_offset_x, "subs.ass")
+    subtitles.write_ass(S, words, work / "subs.ass", mv if mv is not None else int(S.get("margin_v", 520)),
+                        banner, by, settings.get("banner"))
 
     video = work / "clip.mp4"
     kbps = int(C["video_bitrate_k"])
@@ -191,5 +198,5 @@ def build(job, rec: Recorder, settings: dict, streamer, choose_facecam, out_root
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(cover), "-vf", "scale=180:320", "-q:v", "5",
                     str(thumb)], check=True, capture_output=True)
     src.unlink(missing_ok=True)
-    return ClipResult(video, thumb, cover, dur, A, " ".join(w.word.strip() for w in words),
-                      "facecam" if cam else "vollbild", moment=moment, frames=frames)
+    return ClipResult(video, thumb, cover, dur, A, transcript,
+                      "facecam" if cam else "vollbild", moment=moment, frames=frames, banner=banner)

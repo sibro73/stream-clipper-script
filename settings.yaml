@@ -73,6 +73,14 @@ subtitles:
   max_words: 3
   censor: true                  # F*CK statt FUCK in den Untertiteln (Ton bleibt)
 
+banner:                         # Text zwischen Facecam und Gameplay, was im Clip passiert ("Rage tries to ... but fails")
+  enabled: true                 # braucht Ollama mit Bild-Modell: winget install Ollama.Ollama ; ollama pull gemma3:4b
+  model: gemma3:4b              # ohne Ollama: kein Banner, Clip kommt trotzdem
+  max_words: 9
+  size: 62
+  timeout_s: 40
+  use_as_hook: true             # Banner-Text auch als erste Caption-Zeile verwenden
+
 caption:
   provider: transcript          # Hook-Zeile: transcript (Satz aus Whisper, ohne KI) | ollama (lokal) | anthropic
                                 # Faellt der Generator aus: transcript, danach feste Vorlage

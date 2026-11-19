@@ -54,6 +54,14 @@ Den Hook liefert ein austauschbarer Generator (`caption.provider` in `settings.y
 | `ollama` | lokales Modell (`ollama pull llama3.2`, Einstellungen unter `caption.ollama`) |
 | `anthropic` | Claude, braucht `ANTHROPIC_API_KEY` |
 
+**Banner:** Zwischen Facecam und Gameplay steht ein kurzer Satz, was im Clip passiert ("Rage tries to kill him but
+fails"). Den schreibt ein lokales Bild-Sprachmodell (Ollama, `gemma3:4b`) aus 3 Standbildern + Transkript.
+Einmalig einrichten: `winget install Ollama.Ollama` und `ollama pull gemma3:4b`. Ohne Ollama kommt der Clip ohne Banner.
+
+**TikTok-Sound:** Jede Telegram-Nachricht schlägt einen passenden Sound + Alternative vor (Stimmung aus Banner,
+Transkript und Trigger). Die Liste steht in `sounds.yaml` – eigene/aktuelle Trend-Sounds dort eintragen.
+Den Sound fügst du in TikTok selbst hinzu (leise, ~15 %).
+
 Fällt der Generator aus oder liefert nichts, geht es weiter mit `transcript`, danach mit einer festen Vorlage.
 In Telegram steht hinter „Caption“, woher der Hook kam.
 

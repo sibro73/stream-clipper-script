@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import activity, caption, clipbuilder, facecam
+from . import activity, caption, clipbuilder, facecam, sounds
 from .chat import ChatWatcher
 from .config import ROOT, FacecamCache, Streamer, env, load_settings, load_streamers
 from .recorder import Recorder
@@ -376,8 +376,12 @@ class App:
     def process(self, job: Job):
         tr = job.tracked
         st = tr.streamer
-        res = clipbuilder.build(job, tr.recorder, self.S, st, self.choose_facecam, CLIPS_DIR)
-        hook, source = caption.make_hook(self.S, st, res.transcript, job.reason)
+        res = clipbuilder.build(job, tr.recorder, self.S, st, self.choose_facecam, CLIPS_DIR,
+                                describe=lambda s, t, f: caption.describe(self.S, s, t, f))
+        if res.banner and self.S["banner"].get("use_as_hook", True):
+            hook, source = res.banner, "beschreibung"
+        else:
+            hook, source = caption.make_hook(self.S, st, res.transcript, job.reason)
         cap = caption.build_caption(self.S, st, hook)
         (res.video.parent / "caption.txt").write_text(cap, encoding="utf-8")
 
@@ -396,6 +400,15 @@ class App:
         else:
             layout = "Facecam oben / Gameplay unten"
         said = esc(res.transcript[:160] + ("…" if len(res.transcript) > 160 else "")) or "–"
+        banner = f"🏷 Banner: <b>{esc(res.banner)}</b>\n" if res.banner else ""
+        snd = sounds.suggest(res.banner, res.transcript, job.reason)
+        sound = ""
+        if snd:
+            mood, picks = snd
+            sound = f"🎵 TikTok-Sound ({mood}): <code>{esc(picks[0])}</code>\n"
+            if len(picks) > 1:
+                sound += f"      oder <code>{esc(picks[1])}</code>\n"
+            sound += "      (Sound leise ~15 %, Originalton laut)\n"
         size_mb = res.video.stat().st_size / 1e6
         text = (
             f"🎬 <b>{esc(st.caption_name)}</b> · {esc(tr.stream.get('game_name') or '')}"
@@ -405,7 +418,9 @@ class App:
             f"{time.time() - job.detected:.0f}s · {res.duration:.0f}s · {size_mb:.1f} MB\n"
             f"▶️ {' · '.join(links)}\n"
             f"🖼 {layout}\n"
+            f"{banner}"
             f"🗣 {said}\n\n"
+            f"{sound}\n"
             f"📋 Caption ({source}):\n<pre>{esc(cap)}</pre>"
         )
         log.info("[%s] Clip fertig nach %.0fs: %s (%.1f MB) -> Upload", st.login, time.time() - job.detected,

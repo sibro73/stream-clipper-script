@@ -81,7 +81,8 @@ def _esc(s: str) -> str:
     return s.replace("\\", "").replace("{", "(").replace("}", ")").replace("\n", " ")
 
 
-def write_ass(S: dict, words: list, path: Path, margin_v: int):
+def write_ass(S: dict, words: list, path: Path, margin_v: int, banner: str | None = None, banner_y: int = 0,
+              B: dict | None = None):
     font, size = S.get("font", "Arial Black"), int(S.get("size", 80))
     style = "&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,7,3,2,70,70"
     lines = [
@@ -92,8 +93,13 @@ def write_ass(S: dict, words: list, path: Path, margin_v: int):
         "Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
         f"Style: Sub,{font},{size},&H00FFFFFF,{style},{margin_v},1",
         f"Style: Hi,{font},{size},&H0000E5FF,{style},{margin_v},1",
+        # Banner: weisse Schrift auf schwarzem Kasten (BorderStyle 3), mittig an der Naht Facecam/Gameplay
+        f"Style: Banner,{(B or {}).get('font', font)},{int((B or {}).get('size', 54))},&H00FFFFFF,&H000000FF,"
+        f"&H00000000,&H00000000,-1,0,0,0,100,100,0,0,3,20,0,5,50,50,0,1",
         "", "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
+    if banner:
+        lines.append(f"Dialogue: 1,0:00:00.00,9:00:00.00,Banner,,0,0,0,,{{\\pos(540,{banner_y})}}{_esc(banner)}")
     max_words = int(S.get("max_words", 3))
     chunks, cur = [], []
     for w in words:

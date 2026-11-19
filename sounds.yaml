@@ -1,0 +1,56 @@
+# TikTok-Sound-Vorschlaege pro Stimmung. Der Clipper erkennt die Stimmung am Banner-Text, am Transkript und am
+# Trigger (Lach-Welle = funny) und schlaegt pro Clip einen Sound + eine Alternative vor (abwechselnd).
+# In TikTok: Sound-Suche -> Namen eingeben -> Lautstaerke Sound ~10-20 %, Originalton bleibt laut.
+#
+# Eigene/aktuelle Trend-Sounds einfach unter "sounds" der passenden Stimmung eintragen (oben = haeufiger).
+# keywords: englische Woerter (Wortanfang genuegt), die auf diese Stimmung hinweisen.
+
+moods:
+  fail:
+    keywords: [fail, crash, die, dies, died, dead, wasted, falls, fell, miss, wrong, ruin, oops, blew, explod, lose, lost]
+    sounds:
+      - "Oh No - Kreepa"
+      - "Curb Your Enthusiasm Theme (Frolic - Luciano Michelini)"
+      - "Sad Trombone"
+
+  chase:
+    keywords: [chase, police, cop, cops, escape, flee, run, drive, driving, car, speed, wanted, pursuit, swat]
+    sounds:
+      - "Running in the 90s - Max Coveri"
+      - "Tokyo Drift - Teriyaki Boyz"
+      - "Yakety Sax - Boots Randolph"
+
+  heist:
+    keywords: [rob, robs, robbery, steal, stole, heist, bank, sneak, break into, loot]
+    sounds:
+      - "Mission Impossible Theme - Lalo Schifrin"
+      - "Pink Panther Theme - Henry Mancini"
+      - "Sneaky Snitch - Kevin MacLeod"
+
+  shock:
+    keywords: [betray, shock, surprise, twist, sudden, scare, jumpscare, can't believe, what, no way]
+    sounds:
+      - "Vine Boom Sound Effect"
+      - "Metal Pipe Falling Sound Effect"
+      - "Dun Dun Dunnn"
+
+  win:
+    keywords: [win, wins, clutch, gets away, perfect, insane, flex, rich, million, kill, kills, destroy, best]
+    sounds:
+      - "Still D.R.E. - Dr. Dre"
+      - "Metamorphosis - INTERWORLD"
+      - "We Are The Champions - Queen"
+
+  funny:
+    keywords: [laugh, funny, dance, prank, troll, silly, weird, bro, lmao]
+    sounds:
+      - "Monkeys Spinning Monkeys - Kevin MacLeod"
+      - "Fluffing a Duck - Kevin MacLeod"
+      - "Yakety Sax - Boots Randolph"
+
+  hype:                          # Standard, wenn nichts anderes passt
+    keywords: []
+    sounds:
+      - "Murder In My Mind - Kordhell"
+      - "Metamorphosis - INTERWORLD"
+      - "Gangsta's Paradise - Coolio"
