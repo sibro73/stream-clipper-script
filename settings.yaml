@@ -10,7 +10,7 @@ poll:
 buffer:
   minutes: 8                    # Ringpuffer pro Streamer
   segment_s: 4                  # kurze Segmente = Nachlauf ist schneller im Puffer
-  quality: "720p30,720p60,720p,best"   # 720p30 spart Bandbreite (nicht jeder Kanal hat es)
+  quality: "1080p60,1080p30,1080p,best"   # 1080p: Facecam-Ausschnitt hat sonst zu wenig Pixel (6 x ~7 Mbit/s, LAN)
   max_streams: 6                # gleichzeitige Aufnahmen (je ~3-5 Mbit/s Download, LAN). Kampagnen-Streamer haben Vorrang
 
 activity:                       # Schlaf-/AFK-Streams erkennen und ueberspringen (Messung am Ton)
@@ -28,25 +28,26 @@ activity:                       # Schlaf-/AFK-Streams erkennen und ueberspringen
 trigger:
   # Nur die besten Momente: ein STARKES Signal loest allein aus. Ein SCHWACHES nur, wenn das andere
   # (Chat <-> Clips) innerhalb von confirm_s zum gleichen Moment auch anschlaegt.
-  cooldown_s: 300               # pro Streamer, gilt fuer alle Trigger zusammen (gleicher Moment = 1 Clip)
+  cooldown_s: 900               # pro Streamer, gilt fuer alle Trigger zusammen (gleicher Moment = 1 Clip)
+  max_per_hour: 3               # hoechstens so viele Clips pro Stunde, ueber alle Streamer zusammen
   confirm_s: 120
   clips:
-    min_clips: 2                # Clips von so vielen VERSCHIEDENEN Leuten = schwach ...
-    strong_min: 4               # ... so viele = stark
+    min_clips: 3                # Clips von so vielen VERSCHIEDENEN Leuten = schwach ...
+    strong_min: 8               # ... so viele = stark (4 passiert bei den Grossen staendig)
     window_s: 120               # ... innerhalb dieser Zeit
     lookback_s: 180             # started_at = jetzt - 3 Min
   chat:
     window_s: 10
     history_windows: 30         # gleitender Durchschnitt ueber 30 x 10 s = 5 Min
     warmup_windows: 6           # erst nach 1 Min Chat-Daten ausloesen
-    spike_ratio: 3.0            # >= 3x Durchschnitt = schwach ...
-    strong_ratio: 5.0           # >= 5x = stark
-    min_msgs: 15                # ... und mind. so viele Nachrichten pro Fenster
+    spike_ratio: 3.5            # >= 3.5x Durchschnitt = schwach ...
+    strong_ratio: 8.0           # >= 8x = stark
+    min_msgs: 25                # ... und mind. so viele Nachrichten pro Fenster
     laugh_emotes: ["LUL", "KEKW", "LMAO", "OMEGALUL", "ICANT"]
     laugh_ratio: 0.3            # >= 30 % der Nachrichten mit Lach-Emote ...
-    laugh_min: 10               # ... mind. 10 solche Nachrichten ...
+    laugh_min: 15               # ... mind. 15 solche Nachrichten ...
     laugh_vs_baseline: 2.0      # ... und doppelt so viele wie sonst = schwach
-    laugh_strong_min: 25        # so viele Lach-Nachrichten in 10 s = stark
+    laugh_strong_min: 50        # so viele Lach-Nachrichten in 10 s = stark
     delay_s: 4                  # Chat reagiert ein paar Sekunden spaeter als der Moment
 
 clip:
@@ -55,8 +56,8 @@ clip:
   min_s: 10
   peak_search_back_s: 12        # Moment = lautester Punkt im Ton zwischen Trigger -12 s ...
   peak_search_fwd_s: 4          # ... und +4 s (Chat reagiert verspaetet, Schrei/Lacher = Pointe)
-  width: 720                    # Ausgabe 720x1280 (Quelle ist 720p, mehr bringt nichts) - 1080 = 1080x1920
-  video_bitrate_k: 2000         # ~11-13 MB bei 45 s -> schneller Upload; ueber max_mb wird automatisch neu encodiert
+  width: 1080                   # Ausgabe 1080x1920 (Quelle 1080p)
+  video_bitrate_k: 6000         # ~15 MB bei 20 s; ueber max_mb wird automatisch neu encodiert
   fps: 30
   max_mb: 49                    # Telegram-Bot-Limit 50 MB
   top_h_min: 500                # Hoehe der Facecam oben (aus dem Seitenverhaeltnis, begrenzt)

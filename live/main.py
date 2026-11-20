@@ -355,6 +355,15 @@ class App:
                 log.info("[%s] Trigger '%s' ignoriert (Cooldown, gleicher Moment wie vor %.0fs)",
                          login, reason, moment - tr.last_moment)
                 return
+            cap = int(self.S["trigger"].get("max_per_hour") or 0)
+            now = time.time()
+            self.sent_times = [t for t in getattr(self, "sent_times", []) if now - t < 3600]
+            if cap and kind != "test" and len(self.sent_times) >= cap:
+                log.info("[%s] Trigger '%s' ignoriert: schon %d Clips in der letzten Stunde (max_per_hour)",
+                         login, reason, len(self.sent_times))
+                return
+            if kind != "test":
+                self.sent_times.append(now)
             tr.last_moment = moment
         log.info("[%s] TRIGGER %s: %s (Moment %s)", login, kind, reason, time.strftime("%H:%M:%S",
                                                                                      time.localtime(moment)))

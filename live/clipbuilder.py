@@ -105,8 +105,9 @@ def layout_filter(C: dict, cam: dict | None, offset_x: int, subs: str) -> tuple[
         gx = int(min(max(0, (1920 - gw) / 2 + offset_x), 1920 - gw))
         fc = (f"[0:v]setsar=1,split=2[a][b];"
               f"[a]crop={sx(cam['w'])}:{sy(cam['h'])}:{sx(cam['x'])}:{sy(cam['y'])},"
-              f"scale={ow}:{top}:force_original_aspect_ratio=increase,crop={ow}:{top}[cam];"
-              f"[b]crop={sx(gw)}:ih:{sx(gx)}:0,scale={ow}:{bot}[game];"
+              f"scale={ow}:{top}:force_original_aspect_ratio=increase:flags=lanczos,crop={ow}:{top},"
+              f"hqdn3d=1.5:1.5:3:3,unsharp=5:5:0.8:5:5:0[cam];"     # Hochskalieren: erst entrauschen, dann nachschaerfen
+              f"[b]crop={sx(gw)}:ih:{sx(gx)}:0,scale={ow}:{bot}:flags=lanczos[game];"
               f"[cam][game]vstack=inputs=2,{out}")
         return fc, None, int(top * 1920 / oh)          # Banner auf der Naht Facecam/Gameplay
     # Vollbild-Variante (keine Facecam gefunden): Stream mittig, unscharfer Hintergrund

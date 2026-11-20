@@ -27,8 +27,9 @@ def _inside(cx: float, cy: float, box: dict) -> bool:
 
 
 def box_from_face(cx: float, cy: float, size: float) -> dict:
-    """Typische Facecam: Gesicht ~ 1/4 der Breite, 16:9, Gesicht etwas ueber der Mitte."""
-    w = min(W * 0.5, size * 4.0)
+    """Typische Facecam: Gesicht ~ 1/5 der Breite, 16:9, Gesicht etwas ueber der Mitte.
+    Lieber die ganze Cam als nur das Gesicht - jeder Pixel weniger heisst staerker hochzoomen."""
+    w = min(W * 0.5, size * 5.0)
     h = w * 9 / 16
     x = min(max(0.0, cx - w / 2), W - w)
     y = min(max(0.0, cy - h * 0.45), H - h)

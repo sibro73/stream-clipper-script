@@ -19,7 +19,7 @@ DEFAULTS: dict = {
     "poll": {"streams_s": 60, "clips_s": 30},
     "buffer": {"minutes": 8, "segment_s": 4, "quality": "720p30,720p60,720p,best", "max_streams": 2},
     "trigger": {
-        "cooldown_s": 300,
+        "cooldown_s": 900, "max_per_hour": 0,
         "confirm_s": 120,
         "clips": {"min_clips": 2, "strong_min": 4, "window_s": 120, "lookback_s": 180},
         "chat": {
