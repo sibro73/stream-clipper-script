@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import activity, caption, clipbuilder, facecam, sounds
+from . import activity, caption, clipbuilder, facecam, portfolio, sounds
 from .chat import ChatWatcher
 from .config import ROOT, FacecamCache, Streamer, env, load_settings, load_streamers
 from .recorder import Recorder
@@ -447,6 +447,7 @@ class App:
                 self.tg.send_video(res.video, text, res.thumb, res.cover, w, w * 16 // 9 // 2 * 2, res.duration)
                 log.info("[%s] Clip gesendet: %.1f MB, Upload %.0fs, %.0fs nach Trigger", job.login, size_mb,
                          time.time() - t0, time.time() - job.detected)
+                portfolio.report_clip(job.login, res.video.stem, time.time())
             except Exception as e:
                 log.exception("[%s] Upload fehlgeschlagen: %s", job.login, e)
                 try:

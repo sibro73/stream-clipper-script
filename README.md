@@ -77,6 +77,18 @@ erkannten Box. Bis du bestätigst, kommen die Clips im Vollbild-Layout.
 
 Eine Box in `streamers.yaml` (`facecam: {x, y, w, h}`) hat immer Vorrang.
 
+### Portfolio (optional)
+
+Jeder gesendete Clip wird an `silvanbrors.ch` gemeldet, nur ID und Zeitpunkt, für die Zahl «Clips heute».
+Dafür in `.env`:
+
+```
+PORTFOLIO_API_URL=https://api.silvanbrors.ch
+PORTFOLIO_API_KEY=<CLIPPER_API_KEY aus dem Portfolio-Backend>
+```
+
+Ohne diese zwei Werte passiert nichts. Ist das Portfolio nicht erreichbar, steht nur eine Warnung im Log.
+
 ## 4. Einstellungen
 
 - **Streamer:** `streamers.yaml` (neuen Block kopieren)
