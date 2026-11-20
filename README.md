@@ -83,7 +83,7 @@ Jeder gesendete Clip wird an `silvanbrors.ch` gemeldet, nur ID und Zeitpunkt, f√
 Daf√ºr in `.env`:
 
 ```
-PORTFOLIO_API_URL=https://api.silvanbrors.ch
+PORTFOLIO_API_URL=https://silvanbrors.ch
 PORTFOLIO_API_KEY=<CLIPPER_API_KEY aus dem Portfolio-Backend>
 ```
 
