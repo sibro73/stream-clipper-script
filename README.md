@@ -108,3 +108,24 @@ Fertige Clips liegen in `clips/<zeit>_<login>/` (`clip.mp4`, `caption.txt`) und 
 
 Liegt komplett in `archive/` und im Git-Branch `old-timmy`. Die Windows-Aufgaben dazu sind gelöscht. Die Jobs
 bei cron-job.org musst du dort selbst löschen.
+
+## Server (läuft ohne deinen PC)
+
+Gratis auf **Oracle Cloud Always Free** (4 ARM-Kerne, 24 GB RAM, keine GPU). Der Clipper läuft dort als
+systemd-Dienst rund um die Uhr und startet nach Absturz/Neustart selbst.
+
+1. Konto auf <https://www.oracle.com/cloud/free/> (Kreditkarte nur zur Prüfung, wird nicht belastet).
+2. *Compute → Instances → Create*: Image **Ubuntu 24.04**, Shape **VM.Standard.A1.Flex** mit 4 OCPU / 24 GB,
+   SSH-Key hochladen. (Meldet Oracle „Out of capacity“: andere Availability Domain oder später nochmal.)
+3. Auf dem Server:
+   ```
+   git clone https://github.com/sibro73/stream-clipper-script.git clipper && cd clipper
+   bash deploy/setup.sh
+   ```
+4. Vom PC Zugangsdaten + Facecam-Boxen hochladen, dann `bash deploy/setup.sh` nochmal:
+   `scp .env facecam_cache.json ubuntu@<IP>:~/clipper/`
+5. Auf dem PC die Windows-Aufgabe „Clipper Live“ deaktivieren, sonst kommen die Clips doppelt.
+
+Server-Abweichungen (weniger Streams, Whisper `base`, kein NVENC) stehen in `settings.local.yaml`
+(Vorlage: `deploy/settings.server.yaml`). Updates: `git pull && sudo systemctl restart clipper`.
+Log: `journalctl -u clipper -f`.

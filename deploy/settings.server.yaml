@@ -1,0 +1,16 @@
+# Abweichungen fuer den Cloud-Server (Oracle Free, 4 ARM-Kerne, 24 GB, keine GPU).
+# setup.sh kopiert das nach settings.local.yaml – Werte hier ueberschreiben settings.yaml.
+
+buffer:
+  max_streams: 4              # 4 statt 6: Aktivitaets-Checks + Clip-Encoding laufen auf denselben 4 Kernen
+
+clip:
+  prefer_nvenc: false         # keine GPU -> direkt libx264
+
+subtitles:
+  model: base                 # "small" geht auch (~2x langsamer auf der CPU)
+  font: DejaVu Sans           # Arial Black gibt es auf Linux nicht (ttf-mscorefonts optional, s. setup.sh)
+
+banner:
+  timeout_s: 180              # gemma3:4b auf der CPU braucht fuer 3 Bilder ~1-2 Min
+  keep_alive: 24h

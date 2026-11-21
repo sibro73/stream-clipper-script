@@ -26,3 +26,6 @@ archive/assets/*overlay*.png
 assets/*overlay*.png
 archive/assets/SkiiMaskTimmy*
 assets/SkiiMaskTimmy*
+
+# Rechner-spezifische Einstellungen (z. B. Server)
+settings.local.yaml

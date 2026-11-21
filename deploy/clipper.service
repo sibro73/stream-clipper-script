@@ -1,0 +1,19 @@
+[Unit]
+Description=Clipper Live (Twitch -> Clips -> Telegram)
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/clipper
+Environment=PYTHONUTF8=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/ubuntu/clipper/.venv/bin/python -m live run
+Restart=always
+RestartSec=30
+# Kindprozesse (streamlink/ffmpeg) beim Stoppen mitbeenden
+KillMode=control-group
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

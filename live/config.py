@@ -56,7 +56,11 @@ def _merge(base: dict, over: dict) -> dict:
 def load_settings() -> dict:
     p = ROOT / "settings.yaml"
     over = yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else {}
-    return _merge(DEFAULTS, over or {})
+    merged = _merge(DEFAULTS, over or {})
+    local = ROOT / "settings.local.yaml"      # optional, nicht im Repo: Abweichungen pro Rechner (z. B. Server)
+    if local.exists():
+        merged = _merge(merged, yaml.safe_load(local.read_text(encoding="utf-8")) or {})
+    return merged
 
 
 @dataclass
