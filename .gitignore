@@ -20,3 +20,9 @@ vod_titles.json
 frame_grid.png
 layout_preview.png
 **/tools/*.exe
+
+# Fremde Overlay-Grafiken: nur lokal, nicht im Repo
+archive/assets/*overlay*.png
+assets/*overlay*.png
+archive/assets/SkiiMaskTimmy*
+assets/SkiiMaskTimmy*
